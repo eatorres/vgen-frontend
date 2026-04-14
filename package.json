@@ -22,7 +22,7 @@
         "dayjs": "^1.11.20",
         "js-cookie": "^3.0.5",
         "jsonwebtoken": "^9.0.3",
-        "next": "^16.1.6",
+        "next": "^16.2.3",
         "react": "^18.3.1",
         "react-dom": "^18.3.1",
         "react-modal": "^3.16.3",
@@ -33,11 +33,13 @@
     },
     "devDependencies": {
         "@tsconfig/next": "^2.0.6",
-        "@types/node": "25.5.0",
+        "@types/cookie": "^0.5.0",
+        "@types/node": "^24.12.2",
         "@types/react": "^18.3.28",
         "@types/react-dom": "^18.3.7",
-        "oxfmt": "^0.41.0",
-        "typescript": "^5.9.3",
-        "vitest": "^4.1.0"
+        "@types/styled-components": "^5.1.36",
+        "oxfmt": "^0.45.0",
+        "typescript": "^6.0.2",
+        "vitest": "^4.1.4"
     }
 }
