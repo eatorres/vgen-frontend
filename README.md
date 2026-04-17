@@ -34,7 +34,7 @@ It should then be available at [localhost:3000](http://localhost:3000). You shou
 
 ## Submitting your work
 
-Push your changes to your personal GitHub account and reply via email with the links to your code.
+Clone the repos, and push your changes to your personal GitHub account and reply via email with the links to your code.
 
 ## Requirements
 
