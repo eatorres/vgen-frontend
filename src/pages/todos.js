@@ -8,16 +8,6 @@ import TodoList from '../components/TodoList';
 import { Colours, Typography } from '../definitions';
 import apiFetch from '../functions/apiFetch';
 
-const normalizePatchedTodo = (body) => {
-    if (!body || typeof body !== 'object') {
-        return null;
-    }
-    if (body.todoID && body.status) {
-        return body;
-    }
-    return null;
-}
-
 const Todos = () => {
     const [todos, setTodos] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -25,6 +15,8 @@ const Todos = () => {
     const [activeTab, setActiveTab] = useState('Incomplete');
 
     useEffect(() => {
+        // The cancelled flag is a bit too extra, it's really unlikely someone would
+        // navigate away from the page before the todos are loaded. Added it because of force of habit.
         let cancelled = false;
 
         const getTodoItems = async () => {
@@ -52,33 +44,18 @@ const Todos = () => {
         };
     }, []);
 
+    // I decided to just filter the todos by type since this is a small app.
+    // This is a bit simpler than using a query with a status filter in each tab (since I'm not overly worried about optimization)
+    // The list won't grow too large, and it's easy to understand.
     const incompleteTodos = todos.filter((todo) => todo.status === 'incomplete');
     const completeTodos = todos.filter((todo) => todo.status === 'completed');
 
-    const handleToggleStatus = async (todo) => {
-        const nextStatus =
-            todo.status === 'completed' ? 'incomplete' : 'completed';
-
-        const response = await apiFetch(`/todo/${todo.todoID}`, {
-            method: 'PATCH',
-            body: { status: nextStatus },
-        });
-
-        if (response.status === 200) {
-            const updated = normalizePatchedTodo(response.body);
-            if (updated?.todoID) {
-                setTodos((prev) =>
-                    prev.map((t) =>
-                        t.todoID === updated.todoID ? { ...t, ...updated } : t,
-                    ),
-                );
-            }
-        } else {
-            setError(
-                response.body?.error ??
-                    'Something went wrong while updating the todo.',
-            );
-        }
+    const handleTodoUpdated = (updated) => {
+        setTodos((prev) =>
+            prev.map((t) =>
+                t.todoID === updated.todoID ? { ...t, ...updated } : t,
+            ),
+        );
     };
 
     const tabs = [
@@ -88,7 +65,8 @@ const Todos = () => {
                 <TodoList
                     items={incompleteTodos}
                     emptyLabel="All done! Great job champ!"
-                    onToggleStatus={handleToggleStatus}
+                    onTodoUpdated={handleTodoUpdated}
+                    onToggleError={setError}
                 />
             ),
             onClick: () => setActiveTab('Incomplete'),
@@ -99,7 +77,8 @@ const Todos = () => {
                 <TodoList
                     items={completeTodos}
                     emptyLabel="No completed todos."
-                    onToggleStatus={handleToggleStatus}
+                    onTodoUpdated={handleTodoUpdated}
+                    onToggleError={setError}
                 />
             ),
             onClick: () => setActiveTab('Completed'),
