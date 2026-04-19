@@ -22,16 +22,14 @@ const Todos = () => {
             setError(null);
             setNeedsAuth(false);
 
-            const response = await apiFetch('/todo');
+            const response = await apiFetch('/todo', { method: 'GET' });
+
             if (cancelled) {
                 return;
             }
 
             if (response.status === 200) {
                 setTodos(Array.isArray(response.body) ? response.body : []);
-            } else if (response.status === 401) {
-                setError('You need to sign in to view your todos.');
-                setNeedsAuth(true);
             } else {
                 setError(response.body?.error ?? 'Something went wrong while loading your todos.');
             }
