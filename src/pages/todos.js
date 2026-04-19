@@ -1,12 +1,22 @@
-import dayjs from 'dayjs';
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 
 import Alert from '../components/Alert';
 import PageLayout from '../components/PageLayout';
 import Tabs from '../components/Tabs';
+import TodoList from '../components/TodoList';
 import { Colours, Typography } from '../definitions';
 import apiFetch from '../functions/apiFetch';
+
+const normalizePatchedTodo = (body) => {
+    if (!body || typeof body !== 'object') {
+        return null;
+    }
+    if (body.todoID && body.status) {
+        return body;
+    }
+    return null;
+}
 
 const Todos = () => {
     const [todos, setTodos] = useState([]);
@@ -45,34 +55,53 @@ const Todos = () => {
     const incompleteTodos = todos.filter((todo) => todo.status === 'incomplete');
     const completeTodos = todos.filter((todo) => todo.status === 'completed');
 
-    const renderTodoList = (items, emptyLabel) =>
-        items.length > 0 ? (
-            <ul className="todoList">
-                {items.map((todo) => (
-                    <li key={todo.todoID} className="todoItem">
-                        <span className="todoName">{todo.name}</span>
-                        <span className="todoMeta">
-                            {dayjs(todo.created).format('MMM D, YYYY h:mm A')}
-                        </span>
-                    </li>
-                ))}
-            </ul>
-        ) : (
-            <p className="muted">{emptyLabel}</p>
-        );
+    const handleToggleStatus = async (todo) => {
+        const nextStatus =
+            todo.status === 'completed' ? 'incomplete' : 'completed';
+
+        const response = await apiFetch(`/todo/${todo.todoID}`, {
+            method: 'PATCH',
+            body: { status: nextStatus },
+        });
+
+        if (response.status === 200) {
+            const updated = normalizePatchedTodo(response.body);
+            if (updated?.todoID) {
+                setTodos((prev) =>
+                    prev.map((t) =>
+                        t.todoID === updated.todoID ? { ...t, ...updated } : t,
+                    ),
+                );
+            }
+        } else {
+            setError(
+                response.body?.error ??
+                    'Something went wrong while updating the todo.',
+            );
+        }
+    };
 
     const tabs = [
         {
             title: 'Incomplete',
-            content: renderTodoList(
-                incompleteTodos,
-                'All done! Great job champ!',
+            content: (
+                <TodoList
+                    items={incompleteTodos}
+                    emptyLabel="All done! Great job champ!"
+                    onToggleStatus={handleToggleStatus}
+                />
             ),
             onClick: () => setActiveTab('Incomplete'),
         },
         {
             title: 'Completed',
-            content: renderTodoList(completeTodos, 'No completed todos.'),
+            content: (
+                <TodoList
+                    items={completeTodos}
+                    emptyLabel="No completed todos."
+                    onToggleStatus={handleToggleStatus}
+                />
+            ),
             onClick: () => setActiveTab('Completed'),
         },
     ];
@@ -118,38 +147,6 @@ const Container = styled.div`
             margin-top: 0.5rem;
             opacity: 0.8;
             text-align: center;
-        }
-
-        .todoList {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-        }
-
-        .todoItem {
-            align-items: baseline;
-            border-bottom: 1px solid ${Colours.GRAY_LIGHT};
-            display: flex;
-            flex-direction: column;
-            gap: 0.25rem;
-            padding: 1rem 0;
-
-            &:last-child {
-                border-bottom: none;
-            }
-        }
-
-        .todoName {
-            color: ${Colours.BLACK};
-            font-size: ${Typography.BODY_SIZES.L};
-            font-weight: ${Typography.WEIGHTS.MEDIUM};
-            word-break: break-word;
-        }
-
-        .todoMeta {
-            color: ${Colours.BLACK};
-            font-size: ${Typography.BODY_SIZES.S};
-            opacity: 0.65;
         }
     }
 `;
