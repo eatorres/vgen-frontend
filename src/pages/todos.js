@@ -15,6 +15,8 @@ const Todos = () => {
     const [activeTab, setActiveTab] = useState('Incomplete');
 
     useEffect(() => {
+        // The cancelled flag is a bit too extra, it's really unlikely someone would
+        // navigate away from the page before the todos are loaded. Added it because of force of habit.
         let cancelled = false;
 
         const getTodoItems = async () => {
@@ -42,6 +44,9 @@ const Todos = () => {
         };
     }, []);
 
+    // I decided to just filter the todos by type since this is a small app.
+    // This is a bit simpler than using a query with a status filter in each tab (since I'm not overly worried about optimization)
+    // The list won't grow too large, and it's easy to understand.
     const incompleteTodos = todos.filter((todo) => todo.status === 'incomplete');
     const completeTodos = todos.filter((todo) => todo.status === 'completed');
 
