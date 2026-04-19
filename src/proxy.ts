@@ -4,9 +4,11 @@ import config from './config';
 import apiFetch from './functions/apiFetch';
 import getAuthHeaders from './functions/getAuthHeaders';
 
+const ROUTES_TO_PROTECT = ['/', '/todos', '/create'];
+
 export async function proxy(req: NextRequest): Promise<NextResponse> {
-    // Prevent users that aren't signed in from accessing certain protected pages
-    if (req.nextUrl.pathname === '/' || req.nextUrl.pathname === '/create') {
+    // Prevent users that aren't signed in from accessing certain protectereq.nextUrl.pathname === '/' || req.nextUrl.pathname === '/create'd pages
+    if (ROUTES_TO_PROTECT.includes(req.nextUrl.pathname)) {
         try {
             let response = await apiFetch('/user/session', {
                 headers: getAuthHeaders(req),

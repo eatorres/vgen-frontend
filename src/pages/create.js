@@ -23,7 +23,10 @@ const Create = () => {
             setIsSaving(true);
             dispatch(clearTodoAlerts());
             let response = await apiFetch('/todo', {
-                body: todoState.body,
+                body: {
+                    ...todoState.body,
+                    status: 'incomplete',
+                },
                 method: 'POST',
             });
             setIsSaving(false);
