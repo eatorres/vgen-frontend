@@ -8,7 +8,7 @@ import TodoList from '../components/TodoList';
 import { Colours, Typography } from '../definitions';
 import apiFetch from '../functions/apiFetch';
 
-function normalizePatchedTodo(body) {
+const normalizePatchedTodo = (body) => {
     if (!body || typeof body !== 'object') {
         return null;
     }
