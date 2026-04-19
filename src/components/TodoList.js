@@ -3,6 +3,7 @@ import React from 'react';
 import styled from 'styled-components';
 
 import { Colours, Typography } from '../definitions';
+import apiFetch from '../functions/apiFetch';
 
 const List = styled.ul`
     list-style: none;
@@ -99,14 +100,41 @@ function StatusToggleIcon({ status }) {
     );
 }
 
-export default function TodoList({ items, emptyLabel, onToggleStatus }) {
+export default function TodoList({
+    items,
+    emptyLabel,
+    onTodoUpdated,
+    onToggleError,
+}) {
+    const handleToggleStatus = async (todo) => {
+        const nextStatus =
+            todo.status === 'completed' ? 'incomplete' : 'completed';
+
+        const response = await apiFetch(`/todo/${todo.todoID}`, {
+            method: 'PATCH',
+            body: { status: nextStatus },
+        });
+
+        if (response.status === 200) {
+            const updated = response.body;
+            if (updated?.todoID) {
+                onTodoUpdated?.(updated);
+            }
+        } else {
+            onToggleError?.(
+                response.body?.error ??
+                    'Something went wrong while updating the todo.',
+            );
+        }
+    };
+
     return items.length > 0 ? (
         <List>
             {items.map((todo) => (
                 <Item key={todo.todoID}>
                     <ToggleButton
                         type="button"
-                        onClick={() => onToggleStatus?.(todo)}
+                        onClick={() => handleToggleStatus(todo)}
                         aria-label={
                             todo.status === 'completed'
                                 ? 'Mark as incomplete'
