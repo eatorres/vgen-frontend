@@ -15,9 +15,6 @@ function normalizePatchedTodo(body) {
     if (body.todoID && body.status) {
         return body;
     }
-    if (body.value?.todoID && body.value?.status) {
-        return body.value;
-    }
     return null;
 }
 
