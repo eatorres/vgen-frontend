@@ -1,10 +1,10 @@
 import dayjs from 'dayjs';
-import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 
 import Alert from '../components/Alert';
 import PageLayout from '../components/PageLayout';
+import Tabs from '../components/Tabs';
 import { Colours, Typography } from '../definitions';
 import apiFetch from '../functions/apiFetch';
 
@@ -12,7 +12,7 @@ const Todos = () => {
     const [todos, setTodos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [needsAuth, setNeedsAuth] = useState(false);
+    const [activeTab, setActiveTab] = useState('Incomplete');
 
     useEffect(() => {
         let cancelled = false;
@@ -20,7 +20,6 @@ const Todos = () => {
         const getTodoItems = async () => {
             setLoading(true);
             setError(null);
-            setNeedsAuth(false);
 
             const response = await apiFetch('/todo', { method: 'GET' });
 
@@ -43,6 +42,41 @@ const Todos = () => {
         };
     }, []);
 
+    const incompleteTodos = todos.filter((todo) => todo.status === 'incomplete');
+    const completeTodos = todos.filter((todo) => todo.status === 'completed');
+
+    const renderTodoList = (items, emptyLabel) =>
+        items.length > 0 ? (
+            <ul className="todoList">
+                {items.map((todo) => (
+                    <li key={todo.todoID} className="todoItem">
+                        <span className="todoName">{todo.name}</span>
+                        <span className="todoMeta">
+                            {dayjs(todo.created).format('MMM D, YYYY h:mm A')}
+                        </span>
+                    </li>
+                ))}
+            </ul>
+        ) : (
+            <p className="muted">{emptyLabel}</p>
+        );
+
+    const tabs = [
+        {
+            title: 'Incomplete',
+            content: renderTodoList(
+                incompleteTodos,
+                'All done! Great job champ!',
+            ),
+            onClick: () => setActiveTab('Incomplete'),
+        },
+        {
+            title: 'Completed',
+            content: renderTodoList(completeTodos, 'No completed todos.'),
+            onClick: () => setActiveTab('Completed'),
+        },
+    ];
+
     return (
         <PageLayout title="My todos">
             <Container>
@@ -51,25 +85,9 @@ const Todos = () => {
                     <Alert message={error} onClose={() => setError(null)} />
                     {loading ? (
                         <p className="muted">Loading…</p>
-                    ) : todos.length > 0 ? (
-                        <ul className="todoList">
-                            {todos.map((todo) => (
-                                <li key={todo.todoID} className="todoItem">
-                                    <span className="todoName">{todo.name}</span>
-                                    <span className="todoMeta">
-                                        {dayjs(todo.created).format('MMM D, YYYY h:mm A')}
-                                    </span>
-                                </li>
-                            ))}
-                        </ul>
                     ) : !error ? (
-                        <p className="muted">You don’t have any todos yet.</p>
+                        <Tabs activeTab={activeTab} tabs={tabs} />
                     ) : null}
-                    {needsAuth && (
-                        <Link className="authLink" href="/signin">
-                            Sign in
-                        </Link>
-                    )}
                 </div>
             </Container>
         </PageLayout>
@@ -80,7 +98,7 @@ export default Todos;
 
 const Container = styled.div`
     width: 100%;
-
+    min-height: 50vh;
     .content {
         text-align: left;
 
@@ -132,15 +150,6 @@ const Container = styled.div`
             color: ${Colours.BLACK};
             font-size: ${Typography.BODY_SIZES.S};
             opacity: 0.65;
-        }
-
-        .authLink {
-            color: ${Colours.NAVIGATION_BAR};
-            display: inline-block;
-            font-size: ${Typography.BODY_SIZES.M};
-            margin-top: 1rem;
-            text-align: center;
-            width: 100%;
         }
     }
 `;
